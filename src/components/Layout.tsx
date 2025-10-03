@@ -1,174 +1,161 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from './ui/button';
+import React, { ReactNode } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { 
   Home, 
   Users, 
-  DollarSign, 
-  Calendar, 
-  FileText, 
-  BarChart3, 
-  Building2, 
-  UserCheck, 
-  Menu, 
-  X,
+  Briefcase, 
+  Calendar,
+  FileText,
+  BarChart3,
+  Building,
+  Stethoscope,
   LogOut,
-  Settings,
-  PenTool,
-  Send,
-  Shield,
-  Zap
+  Menu,
+  X
 } from 'lucide-react';
+import { useState } from 'react';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface LayoutProps {
+  children: ReactNode;
+  currentPage: string;
+}
+
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Contacts', href: '/contacts', icon: Users },
+  { name: 'Deals', href: '/deals', icon: Briefcase },
+  { name: 'Calendar', href: '/calendar', icon: Calendar },
+  { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Properties', href: '/properties', icon: Building },
+  { name: 'Patients', href: '/patients', icon: Stethoscope },
+];
+
+const Layout: React.FC<LayoutProps> = ({ children, currentPage }) => {
   const { user, logout } = useAuth();
-  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Contacts', href: '/contacts', icon: Users },
-    { name: 'Deals', href: '/deals', icon: DollarSign },
-    { name: 'Calendar', href: '/calendar', icon: Calendar },
-    { name: 'Documents', href: '/documents', icon: FileText },
-    { name: 'E-Signature', href: '/e-signature', icon: PenTool },
-    { name: 'Automation', href: '/automation', icon: Send },
-    { name: 'Integrations', href: '/integrations', icon: Zap },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Privacy & Compliance', href: '/privacy', icon: Shield },
-  ];
-
-  // Add industry-specific navigation
-  if (user?.organization.industry === 'real_estate') {
-    navigation.push({ name: 'Properties', href: '/properties', icon: Building2 });
-  }
-
-  if (user?.organization.industry === 'dental') {
-    navigation.push({ name: 'Patients', href: '/patients', icon: UserCheck });
-  }
-
-  const handleLogout = () => {
-    logout();
+  const handleNavigation = (href: string) => {
+    window.location.href = href;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
-      <div className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}>
-        <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setSidebarOpen(false)} />
-        
-        <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-white transform transition ease-in-out duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(false)}
-              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-            >
-              <X className="h-6 w-6 text-white" />
-            </Button>
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-white">
+            <div className="flex h-16 items-center justify-between px-4">
+              <h1 className="text-lg font-semibold text-gray-900">Sales CRM</h1>
+              <button
+                type="button"
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <nav className="flex-1 space-y-1 px-2 py-4">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentPage === item.name.toLowerCase();
+                return (
+                  <button
+                    key={item.name}
+                    onClick={() => handleNavigation(item.href)}
+                    className={`sidebar-nav-item w-full text-left ${isActive ? 'active' : ''}`}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-          <SidebarContent navigation={navigation} currentPath={location.pathname} user={user} onLogout={handleLogout} />
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+        <div className="sidebar-nav">
+          <div className="flex h-16 items-center px-4">
+            <h1 className="text-lg font-semibold text-gray-900">Sales CRM</h1>
+          </div>
+          <nav className="flex-1 space-y-1 px-2 py-4">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentPage === item.name.toLowerCase();
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => handleNavigation(item.href)}
+                  className={`sidebar-nav-item w-full text-left ${isActive ? 'active' : ''}`}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </button>
+              );
+            })}
+          </nav>
+          
+          {/* User section */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
+                  <span className="text-sm font-medium text-white">
+                    {user?.name?.charAt(0) || 'U'}
+                  </span>
+                </div>
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.name || 'User'}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {user?.email || ''}
+                </p>
+              </div>
+              <button
+                onClick={logout}
+                className="ml-2 text-gray-400 hover:text-gray-600"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Static sidebar for desktop */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <SidebarContent navigation={navigation} currentPath={location.pathname} user={user} onLogout={handleLogout} />
-      </div>
-
-      <div className="md:pl-64 flex flex-col flex-1">
-        <div className="sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-100">
-          <Button
-            variant="ghost"
-            size="icon"
+      {/* Main content */}
+      <div className="lg:pl-64">
+        {/* Top bar */}
+        <div className="sticky top-0 z-40 flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            className="text-gray-700 lg:hidden"
             onClick={() => setSidebarOpen(true)}
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
           >
             <Menu className="h-6 w-6" />
-          </Button>
+          </button>
+          
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1 items-center">
+              <h1 className="text-lg font-semibold text-gray-900 capitalize">
+                {currentPage}
+              </h1>
+            </div>
+          </div>
         </div>
-        <main className="flex-1">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-};
 
-const SidebarContent: React.FC<{
-  navigation: any[];
-  currentPath: string;
-  user: any;
-  onLogout: () => void;
-}> = ({ navigation, currentPath, user, onLogout }) => {
-  return (
-    <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
-      <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-        <div className="flex items-center flex-shrink-0 px-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">CRM</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">
-                {user?.organization.name}
-              </p>
-              <p className="text-xs text-gray-500 capitalize">
-                {user?.organization.industry?.replace('_', ' ')} CRM
-              </p>
-            </div>
+        {/* Page content */}
+        <main className="py-6">
+          <div className="px-4 sm:px-6 lg:px-8">
+            {children}
           </div>
-        </div>
-        <nav className="mt-5 flex-1 px-2 space-y-1">
-          {navigation.map((item) => {
-            const isActive = currentPath === item.href;
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`${
-                  isActive
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors`}
-              >
-                <item.icon
-                  className={`${
-                    isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-                  } mr-3 flex-shrink-0 h-5 w-5`}
-                />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-      <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-        <div className="flex items-center w-full">
-          <div className="flex-shrink-0">
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </span>
-            </div>
-          </div>
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-gray-900">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onLogout}
-            className="ml-2 h-8 w-8 text-gray-400 hover:text-gray-600"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+        </main>
       </div>
     </div>
   );

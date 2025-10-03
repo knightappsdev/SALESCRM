@@ -1,50 +1,73 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import Contacts from './pages/Contacts';
-import Deals from './pages/Deals';
-import Calendar from './pages/Calendar';
-import Documents from './pages/Documents';
-import Analytics from './pages/Analytics';
-import Properties from './pages/Properties';
-import Patients from './pages/Patients';
-import Automation from './pages/Automation';
-import Integrations from './pages/Integrations';
-import PrivacyPage from './pages/PrivacyPage';
-import ESignaturePage from './pages/ESignaturePage';
-import Layout from './components/Layout';
-import './App.css';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import LoginForm from './components/LoginForm';
+import Dashboard from './components/Dashboard';
+import ContactsPage from './components/ContactsPage';
+import DealsPage from './components/DealsPage';
+import CalendarPage from './components/CalendarPage';
+import AnalyticsPage from './components/AnalyticsPage';
+import PropertiesPage from './components/PropertiesPage';
+import PatientsPage from './components/PatientsPage';
+import DocumentsPage from './components/DocumentsPage';
 
+// Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
-  
-  return user ? <>{children}</> : <Navigate to="/login" />;
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Public Route Component (redirects if already logged in)
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 const AppRoutes: React.FC = () => {
-  const { user } = useAuth();
-  
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      {/* Public Routes */}
       <Route
-        path="/dashboard"
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginForm />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <Dashboard />
           </ProtectedRoute>
         }
       />
@@ -52,9 +75,7 @@ const AppRoutes: React.FC = () => {
         path="/contacts"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Contacts />
-            </Layout>
+            <ContactsPage />
           </ProtectedRoute>
         }
       />
@@ -62,9 +83,7 @@ const AppRoutes: React.FC = () => {
         path="/deals"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Deals />
-            </Layout>
+            <DealsPage />
           </ProtectedRoute>
         }
       />
@@ -72,9 +91,7 @@ const AppRoutes: React.FC = () => {
         path="/calendar"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Calendar />
-            </Layout>
+            <CalendarPage />
           </ProtectedRoute>
         }
       />
@@ -82,9 +99,7 @@ const AppRoutes: React.FC = () => {
         path="/documents"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Documents />
-            </Layout>
+            <DocumentsPage />
           </ProtectedRoute>
         }
       />
@@ -92,9 +107,7 @@ const AppRoutes: React.FC = () => {
         path="/analytics"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Analytics />
-            </Layout>
+            <AnalyticsPage />
           </ProtectedRoute>
         }
       />
@@ -102,9 +115,7 @@ const AppRoutes: React.FC = () => {
         path="/properties"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Properties />
-            </Layout>
+            <PropertiesPage />
           </ProtectedRoute>
         }
       />
@@ -112,52 +123,13 @@ const AppRoutes: React.FC = () => {
         path="/patients"
         element={
           <ProtectedRoute>
-            <Layout>
-              <Patients />
-            </Layout>
+            <PatientsPage />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/automation"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Automation />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/integrations"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Integrations />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/privacy"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <PrivacyPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/e-signature"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <ESignaturePage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+
+      {/* Catch all route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
@@ -166,7 +138,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-background">
+        <div className="App">
           <AppRoutes />
         </div>
       </Router>
